@@ -676,7 +676,13 @@ impl KMeans {
                         self.update_medoid_for_cluster(data, old_cluster);
                     } else {
                         // For standard k-means, compute averaged centroid
-                        let new_centroid = &unnormalized_centroids.row(old_cluster) / (n_old - 1.0);
+                        let new_centroid = if n_old > 1.0 {
+                            &unnormalized_centroids.row(old_cluster) / (n_old - 1.0)
+                        } else {
+                            // Empty cluster. Assign a centroid of 0.0. We should check if in a later step this
+                            // cluster is filled with a random point?
+                            Array1::zeros(unnormalized_centroids.ncols())
+                        };
                         if let Some(ref mut centroids) = self.centroids {
                             centroids.row_mut(old_cluster).assign(&new_centroid);
                             if !self.euclidean {
